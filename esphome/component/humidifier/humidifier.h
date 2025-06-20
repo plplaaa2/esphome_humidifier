@@ -18,6 +18,8 @@ class Humidifier : public climate::Climate, public Component {
 
   void set_humidity_sensor(sensor::Sensor *sensor) { humidity_sensor_ = sensor; }
   void set_supported_fan_modes(const std::vector<std::string> &modes) { fan_modes_ = modes; }
+  void set_min_humidity(float min) { min_humidity_ = min; }
+  void set_max_humidity(float max) { max_humidity_ = max; }
 
   // Triggers for automations
   Trigger<> *get_turn_on_trigger() { return &on_turn_on_trigger_; }
@@ -31,6 +33,8 @@ class Humidifier : public climate::Climate, public Component {
  protected:
   sensor::Sensor *humidity_sensor_{nullptr};
   std::vector<std::string> fan_modes_ = {"OFF", "LOW", "MEDIUM", "HIGH"};
+  float min_humidity_{30};
+  float max_humidity_{80};
 
   // Triggers
   Trigger<> on_turn_on_trigger_;
@@ -51,22 +55,4 @@ template<typename... Ts>
 class HumidifierSetFanModeAction : public Action<Ts...> {
  public:
   explicit HumidifierSetFanModeAction(Humidifier *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(std::string, fan_mode)
-  void play(Ts... x) override { parent_->set_fan_mode(this->fan_mode_.value(x...)); }
- protected:
-  Humidifier *parent_;
-};
-
-// 액션: 타겟 습도 변경
-template<typename... Ts>
-class HumidifierSetTargetHumidityAction : public Action<Ts...> {
- public:
-  explicit HumidifierSetTargetHumidityAction(Humidifier *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(float, target_humidity)
-  void play(Ts... x) override { parent_->set_target_humidity(this->target_humidity_.value(x...)); }
- protected:
-  Humidifier *parent_;
-};
-
-}  // namespace humidifier
-}  // namespace esphome
+  TEMPLATABLE_VALUE
