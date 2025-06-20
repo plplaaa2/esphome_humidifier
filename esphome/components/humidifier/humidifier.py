@@ -19,7 +19,7 @@ CONFIG_SCHEMA = climate.climate_schema(
     {
         cv.GenerateID(): cv.declare_id(Humidifier),
         cv.Required(CONF_NAME): cv.string,
-        cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
+        cv.Required("sensor"): cv.use_id(sensor.Sensor),
         cv.Optional(CONF_FAN_MODES, default=["OFF", "LOW", "MEDIUM", "HIGH"]): cv.ensure_list(cv.string),
         cv.Optional(CONF_MIN_HUMIDITY, default=30): cv.int_range(min=0, max=100),
         cv.Optional(CONF_MAX_HUMIDITY, default=80): cv.int_range(min=0, max=100),
