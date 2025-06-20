@@ -5,7 +5,6 @@ from esphome.automation import register_action
 
 from . import humidifier_ns, Humidifier
 
-# Set Fan Mode Action
 HumidifierSetFanModeAction = humidifier_ns.class_(
     "HumidifierSetFanModeAction", cg.Action
 )
@@ -29,7 +28,6 @@ async def humidifier_set_fan_mode_action_to_code(config, action_id, template_arg
     cg.add(var.set_fan_mode(config[CONF_FAN_MODE]))
     return var
 
-# Set Target Humidity Action
 HumidifierSetTargetHumidityAction = humidifier_ns.class_(
     "HumidifierSetTargetHumidityAction", cg.Action
 )
