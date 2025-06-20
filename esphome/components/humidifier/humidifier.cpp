@@ -1,110 +1,81 @@
-#include "humidifier.h"
-#include "esphome/core/log.h"
+#include "esphome/components/humidifier/humidifier.h"
 
 namespace esphome {
 namespace humidifier {
 
-static const char *const TAG = "humidifier";
+Humidifier::Humidifier() = default;
 
 void Humidifier::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up Humidifier...");
-  // (Optional) Initial hardware setup
+  // 초기화 필요시 여기에 구현
 }
 
 void Humidifier::dump_config() {
-  ESP_LOGCONFIG(TAG, "Humidifier:");
-  LOG_COMPONENT("", "  ", this);
-  if (this->humidity_sensor_ != nullptr)
-    ESP_LOGCONFIG(TAG, "  Linked humidity sensor: %p", this->humidity_sensor_);
-  else
-    ESP_LOGCONFIG(TAG, "  No humidity sensor linked.");
-  ESP_LOGCONFIG(TAG, "  Supported fan modes: %s", vector_to_string(this->fan_modes_).c_str());
-  ESP_LOGCONFIG(TAG, "  Min humidity: %.1f", this->min_humidity_);
-  ESP_LOGCONFIG(TAG, "  Max humidity: %.1f", this->max_humidity_);
+  ESP_LOGCONFIG("humidifier", "Humidifier:");
+  ESP_LOGCONFIG("humidifier", "  Supported fan modes: %s", 
+                enumerate_list(this->fan_modes_).c_str());
+  ESP_LOGCONFIG("humidifier", "  Min humidity: %.1f", this->min_humidity_);
+  ESP_LOGCONFIG("humidifier", "  Max humidity: %.1f", this->max_humidity_);
+  if (this->humidity_sensor_) {
+    ESP_LOGCONFIG("humidifier", "  Humidity sensor: %s", this->humidity_sensor_->get_name().c_str());
+  } else {
+    ESP_LOGCONFIG("humidifier", "  No humidity sensor configured");
+  }
 }
 
 void Humidifier::loop() {
-  // Poll humidity sensor and update state
-  if (humidity_sensor_ != nullptr && humidity_sensor_->has_state()) {
-    float humidity = humidity_sensor_->state;
-    if (this->current_humidity_ != humidity) {
-      this->current_humidity_ = humidity;
-      this->current_humidity = humidity;
-      this->publish_state();
+  // 주기적으로 습도 센서 값을 읽어 상태 업데이트
+  if (this->humidity_sensor_) {
+    float value = this->humidity_sensor_->state;
+    if (!std::isnan(value)) {
+      current_humidity_ = value;
     }
   }
 }
 
-climate::ClimateTraits Humidifier::traits() {
-  auto traits = climate::ClimateTraits();
-  traits.set_supports_current_humidity(true);
-  traits.set_supports_target_humidity(true);
-  traits.set_supported_fan_modes(this->fan_modes_);
-  traits.set_supported_modes({
-    climate::CLIMATE_MODE_OFF,
-    climate::CLIMATE_MODE_AUTO,   // 자동
-    climate::CLIMATE_MODE_MANUAL  // 수동
-  });
-  traits.set_min_humidity(this->min_humidity_);
-  traits.set_max_humidity(this->max_humidity_);
-  return traits;
+void Humidifier::set_humidity_sensor(sensor::Sensor *sensor) {
+  this->humidity_sensor_ = sensor;
+}
+void Humidifier::set_supported_fan_modes(const std::vector<std::string> &modes) {
+  this->fan_modes_ = modes;
+}
+void Humidifier::set_min_humidity(float min) {
+  this->min_humidity_ = min;
+}
+void Humidifier::set_max_humidity(float max) {
+  this->max_humidity_ = max;
 }
 
-void Humidifier::control(const climate::ClimateCall &call) {
-  // 목표 습도 설정
-  if (call.get_target_humidity().has_value()) {
-    float value = *call.get_target_humidity();
-    this->target_humidity = value;
-    on_target_humidity_trigger_.trigger(value);
-  }
-
-  // 팬 모드 설정
-  if (call.get_fan_mode().has_value()) {
-    this->set_fan_mode(*call.get_fan_mode());
-  }
-
-  // 운전 모드 처리
-  if (call.get_mode().has_value()) {
-    if (*call.get_mode() == climate::CLIMATE_MODE_OFF) {
-      on_turn_off_trigger_.trigger();
-      // 팬 꺼짐 등 실제 동작 추가 가능
-    } else if (*call.get_mode() == climate::CLIMATE_MODE_AUTO) {
-      on_turn_on_trigger_.trigger();
-      // 자동 운전(목표 습도/현재 습도 비교) 구현 가능
-    } else if (*call.get_mode() == climate::CLIMATE_MODE_MANUAL) {
-      on_turn_on_trigger_.trigger();
-      // 수동 운전(팬/습도 명령만 반영) 구현 가능
-    }
-  }
-  this->publish_state();
-}
+Trigger<> *Humidifier::get_turn_on_trigger() { return &on_turn_on_trigger_; }
+Trigger<> *Humidifier::get_turn_off_trigger() { return &on_turn_off_trigger_; }
+Trigger<std::string> *Humidifier::get_fan_mode_trigger() { return &on_fan_mode_trigger_; }
+Trigger<float> *Humidifier::get_target_humidity_trigger() { return &on_target_humidity_trigger_; }
 
 void Humidifier::set_fan_mode(const std::string &mode) {
-  if (this->current_fan_mode_ != mode) {
-    this->current_fan_mode_ = mode;
-    this->fan_mode = mode;
-    on_fan_mode_trigger_.trigger(mode);
-    update_fan_output_();
-  }
+  if (mode == current_fan_mode_) return;
+  current_fan_mode_ = mode;
+  on_fan_mode_trigger_.trigger(mode);
+  update_fan_output_();
 }
 
 void Humidifier::set_target_humidity(float value) {
-  this->target_humidity = value;
+  if (value == current_target_humidity_) return;
+  current_target_humidity_ = value;
   on_target_humidity_trigger_.trigger(value);
-  this->publish_state();
+}
+
+const std::string &Humidifier::get_fan_mode() const {
+  return current_fan_mode_;
+}
+float Humidifier::get_target_humidity() const {
+  return current_target_humidity_;
+}
+float Humidifier::get_current_humidity() const {
+  return current_humidity_;
 }
 
 void Humidifier::update_fan_output_() {
-  // 실제 팬 제어 로직 (릴레이, PWM 등)
-  if (current_fan_mode_ == "OFF") {
-    // turn fan off
-  } else if (current_fan_mode_ == "LOW") {
-    // set fan to low speed
-  } else if (current_fan_mode_ == "MEDIUM") {
-    // set fan to medium speed
-  } else if (current_fan_mode_ == "HIGH") {
-    // set fan to high speed
-  }
+  // 팬 모드에 따른 실제 동작 구현 필요
+  // 예: GPIO 제어 등
 }
 
 }  // namespace humidifier
