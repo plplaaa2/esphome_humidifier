@@ -5,10 +5,11 @@ from esphome.const import (
     CONF_ID,
     CONF_NAME,
     CONF_SENSOR,
-    CONF_FAN_MODES,
     CONF_MIN_HUMIDITY,
     CONF_MAX_HUMIDITY,
 )
+
+CONF_FAN_MODES = "fan_modes"  # ← 직접 선언
 
 from . import humidifier_ns, Humidifier
 
