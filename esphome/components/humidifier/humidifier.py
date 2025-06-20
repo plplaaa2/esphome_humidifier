@@ -1,4 +1,8 @@
 import esphome.codegen as cg
+
+humidifier_ns = cg.esphome_ns.namespace("humidifier")
+Humidifier = humidifier_ns.class_("Humidifier", cg.Component)
+
 import esphome.config_validation as cv
 from esphome.components import climate, sensor
 from esphome.const import (
@@ -10,8 +14,6 @@ from esphome.const import (
 CONF_FAN_MODES = "fan_modes"
 CONF_MIN_HUMIDITY = "min_humidity"
 CONF_MAX_HUMIDITY = "max_humidity"
-
-from . import humidifier_ns, Humidifier
 
 CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
     {
