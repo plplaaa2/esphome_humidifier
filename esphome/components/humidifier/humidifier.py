@@ -11,15 +11,18 @@ from esphome.const import (
     CONF_SENSOR,
 )
 
+custom_humidifier_ns = cg.esphome_ns.namespace("custom_humidifier")
+CustomHumidifier = custom_humidifier_ns.class_("CustomHumidifier", cg.Component)
+
 CONF_FAN_MODES = "fan_modes"
 CONF_MIN_HUMIDITY = "min_humidity"
 CONF_MAX_HUMIDITY = "max_humidity"
 
 CONFIG_SCHEMA = climate.climate_schema(
     {
-        cv.GenerateID(): cv.declare_id(Humidifier),
+        cv.GenerateID(): cv.declare_id(CustomHumidifier),
         cv.Required(CONF_NAME): cv.string,
-        cv.Required("sensor"): cv.use_id(sensor.Sensor),
+        cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
         cv.Optional(CONF_FAN_MODES, default=["OFF", "LOW", "MEDIUM", "HIGH"]): cv.ensure_list(cv.string),
         cv.Optional(CONF_MIN_HUMIDITY, default=30): cv.int_range(min=0, max=100),
         cv.Optional(CONF_MAX_HUMIDITY, default=80): cv.int_range(min=0, max=100),
