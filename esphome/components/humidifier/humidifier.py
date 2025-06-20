@@ -15,7 +15,7 @@ CONF_FAN_MODES = "fan_modes"
 CONF_MIN_HUMIDITY = "min_humidity"
 CONF_MAX_HUMIDITY = "max_humidity"
 
-CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
+CONFIG_SCHEMA = climate.climate_schema(
     {
         cv.GenerateID(): cv.declare_id(Humidifier),
         cv.Required(CONF_NAME): cv.string,
