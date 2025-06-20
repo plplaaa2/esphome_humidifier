@@ -1,0 +1,2 @@
+# esphome_humidifier
+text
