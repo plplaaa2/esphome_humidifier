@@ -1,6 +1,5 @@
 import esphome.codegen as cg
 from esphome.const import (
-    CONF_ID,
     CONF_ON_TURN_ON,
     CONF_ON_TURN_OFF,
     CONF_ON_FAN_MODE,
@@ -8,8 +7,6 @@ from esphome.const import (
 )
 import esphome.config_validation as cv
 from esphome.automation import build_automation
-
-from . import humidifier_ns, Humidifier
 
 def register_humidifier_triggers(config, var):
     if CONF_ON_TURN_ON in config:
