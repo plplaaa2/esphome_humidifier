@@ -5,11 +5,11 @@ from esphome.const import (
     CONF_ID,
     CONF_NAME,
     CONF_SENSOR,
-    CONF_MIN_HUMIDITY,
-    CONF_MAX_HUMIDITY,
 )
 
-CONF_FAN_MODES = "fan_modes"  # ← 직접 선언
+CONF_FAN_MODES = "fan_modes"
+CONF_MIN_HUMIDITY = "min_humidity"
+CONF_MAX_HUMIDITY = "max_humidity"
 
 from . import humidifier_ns, Humidifier
 
