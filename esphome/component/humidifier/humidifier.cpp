@@ -19,6 +19,8 @@ void Humidifier::dump_config() {
   else
     ESP_LOGCONFIG(TAG, "  No humidity sensor linked.");
   ESP_LOGCONFIG(TAG, "  Supported fan modes: %s", vector_to_string(this->fan_modes_).c_str());
+  ESP_LOGCONFIG(TAG, "  Min humidity: %.1f", this->min_humidity_);
+  ESP_LOGCONFIG(TAG, "  Max humidity: %.1f", this->max_humidity_);
 }
 
 void Humidifier::loop() {
@@ -43,25 +45,35 @@ climate::ClimateTraits Humidifier::traits() {
     climate::CLIMATE_MODE_AUTO,   // 자동
     climate::CLIMATE_MODE_MANUAL  // 수동
   });
-  traits.set_min_humidity(30);
-  traits.set_max_humidity(80);
+  traits.set_min_humidity(this->min_humidity_);
+  traits.set_max_humidity(this->max_humidity_);
   return traits;
 }
 
 void Humidifier::control(const climate::ClimateCall &call) {
+  // 목표 습도 설정
   if (call.get_target_humidity().has_value()) {
     float value = *call.get_target_humidity();
     this->target_humidity = value;
     on_target_humidity_trigger_.trigger(value);
   }
+
+  // 팬 모드 설정
   if (call.get_fan_mode().has_value()) {
     this->set_fan_mode(*call.get_fan_mode());
   }
+
+  // 운전 모드 처리
   if (call.get_mode().has_value()) {
     if (*call.get_mode() == climate::CLIMATE_MODE_OFF) {
       on_turn_off_trigger_.trigger();
+      // 팬 꺼짐 등 실제 동작 추가 가능
     } else if (*call.get_mode() == climate::CLIMATE_MODE_AUTO) {
       on_turn_on_trigger_.trigger();
+      // 자동 운전(목표 습도/현재 습도 비교) 구현 가능
+    } else if (*call.get_mode() == climate::CLIMATE_MODE_MANUAL) {
+      on_turn_on_trigger_.trigger();
+      // 수동 운전(팬/습도 명령만 반영) 구현 가능
     }
   }
   this->publish_state();
