@@ -49,10 +49,27 @@ class Humidifier : public climate::Climate, public Component {
   void update_fan_output_();
 };
 
-
 // 액션: 팬 모드 변경
 template<typename... Ts>
 class HumidifierSetFanModeAction : public Action<Ts...> {
  public:
   explicit HumidifierSetFanModeAction(Humidifier *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE
+  TEMPLATABLE_VALUE(std::string, fan_mode)
+  void play(Ts... x) override { parent_->set_fan_mode(this->fan_mode_.value(x...)); }
+ protected:
+  Humidifier *parent_;
+};
+
+// 액션: 타겟 습도 변경
+template<typename... Ts>
+class HumidifierSetTargetHumidityAction : public Action<Ts...> {
+ public:
+  explicit HumidifierSetTargetHumidityAction(Humidifier *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, target_humidity)
+  void play(Ts... x) override { parent_->set_target_humidity(this->target_humidity_.value(x...)); }
+ protected:
+  Humidifier *parent_;
+};
+
+}  // namespace humidifier
+}  // namespace esphome
