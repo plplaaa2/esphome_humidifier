@@ -39,6 +39,8 @@ climate::ClimateTraits Humidifier::traits() {
   traits.set_supports_target_humidity(true);
   traits.set_supported_fan_modes(this->fan_modes_);
   traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_AUTO});
+  traits.set_min_humidity(30);
+  traits.set_max_humidity(80);
   return traits;
 }
 
