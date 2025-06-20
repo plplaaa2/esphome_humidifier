@@ -1,0 +1,26 @@
+sensor:
+  - platform: sht3xd
+    address: 0x44
+    temperature:
+      name: "Living Room Temperature"
+    humidity:
+      name: "Living Room Humidity"
+      id: living_room_humidity
+
+humidifier:
+  - platform: custom
+    name: Living Room Humidifier
+    sensor: living_room_humidity
+    fan_modes: ["OFF", "LOW", "MEDIUM", "HIGH"]
+    on_turn_on:
+      - logger.log: "Humidifier turned ON"
+    on_turn_off:
+      - logger.log: "Humidifier turned OFF"
+    on_fan_mode:
+      - logger.log:
+          format: "Fan mode changed to %s"
+          args: ["x"]
+    on_target_humidity:
+      - logger.log:
+          format: "Target humidity set to %.1f%%"
+          args: ["x"]
