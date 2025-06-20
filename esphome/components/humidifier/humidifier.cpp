@@ -1,5 +1,5 @@
 #include "esphome/components/humidifier/humidifier.h"
-
+#include "esphome/core/helpers.h"
 namespace esphome {
 namespace humidifier {
 
